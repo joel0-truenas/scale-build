@@ -2,6 +2,7 @@ import importlib
 import logging
 import gzip
 import os
+import platform
 import re
 import sys
 
@@ -10,6 +11,8 @@ from packaging import version
 
 from .utils.manifest import get_manifest
 from .utils.package import get_packages
+
+ARCH = 'arm64' if platform.machine() == 'aarch64' else 'amd64'
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +80,7 @@ def check_debian_fork(debian_packages, pkg):
 def check_upstream_package_updates():
     manifest = get_manifest()
     response = requests.get(
-        f'https://deb.debian.org/debian/dists/{manifest["debian_release"]}/main/binary-amd64/Packages.gz'
+        f'https://deb.debian.org/debian/dists/{manifest["debian_release"]}/main/binary-{ARCH}/Packages.gz'
     )
     response.raise_for_status()
     debian_packages = gzip.decompress(response.content).decode("utf-8")
