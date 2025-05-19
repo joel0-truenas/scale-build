@@ -1,6 +1,7 @@
 import errno
 import logging
 import os
+import platform
 import shutil
 
 import requests
@@ -151,10 +152,15 @@ class NvidiaExtension(Extension):
                     "https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /")
 
     def download_nvidia_driver(self):
-        prefix = "https://us.download.nvidia.com/XFree86/Linux-x86_64"
-
         version = get_manifest()["extensions"]["nvidia"]["current"]
-        filename = f"NVIDIA-Linux-x86_64-{version}-no-compat32.run"
+
+        if platform.machine() == "aarch64":
+            prefix = "https://us.download.nvidia.com/XFree86/aarch64"
+            filename = f"NVIDIA-Linux-aarch64-{version}.run"
+        else:
+            prefix = "https://us.download.nvidia.com/XFree86/Linux-x86_64"
+            filename = f"NVIDIA-Linux-x86_64-{version}-no-compat32.run"
+
         result = f"{self.chroot}/{filename}"
 
         self.run(["wget", "-c", "-O", f"/{filename}", f"{prefix}/{version}/{filename}"])
