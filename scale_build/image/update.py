@@ -2,6 +2,7 @@ import glob
 import itertools
 import logging
 import os
+import platform
 import textwrap
 import shutil
 import stat
@@ -18,6 +19,7 @@ from .manifest import build_manifest, build_release_manifest, get_version, updat
 from .mtree import generate_mtree
 from .utils import run_in_chroot
 
+ARCH = 'arm64' if platform.machine() == 'aarch64' else 'amd64'
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +107,8 @@ def install_rootfs_packages_impl():
     manifest = get_manifest()
     packages_to_install = {False: set(), True: set()}
     for package_entry in itertools.chain(manifest['base-packages'], manifest['additional-packages']):
-        packages_to_install[package_entry['install_recommends']].add(package_entry['name'])
+        if package_entry.get('arch', ARCH) == ARCH:
+            packages_to_install[package_entry['install_recommends']].add(package_entry['name'])
 
     for install_recommends, packages_names in packages_to_install.items():
         log_message = f'Installing {packages_names}'
