@@ -78,4 +78,4 @@ def build_update_image_impl():
         umount_chroot_basedir()
         umount_tmpfs_and_clean_chroot_dir()
 
-    logger.info('Success! Update image created at: %s', update_file_path())
+    logger.info('Success! Update image created at: %s', os.path.relpath(update_file_path()))
