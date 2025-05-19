@@ -1,12 +1,13 @@
 import glob
 import logging
 import os
+import platform
 
 from .bootstrap.bootstrapdir import CdromBootstrapDirectory
 from .exceptions import CallError
 from .image.bootstrap import clean_mounts, setup_chroot_basedir, umount_tmpfs_and_clean_chroot_dir
 from .image.iso import install_iso_packages, make_iso_file
-from .image.manifest import get_image_version, update_file_path
+from .image.manifest import get_image_version, iso_file_path, update_file_path
 from .utils.logger import LoggingContext
 from .utils.paths import LOG_DIR, RELEASE_DIR
 from .config import TRUENAS_VENDOR
@@ -49,4 +50,4 @@ def build_impl():
     finally:
         umount_tmpfs_and_clean_chroot_dir()
 
-    logger.info('Success! CD/USB: %s/TrueNAS-SCALE-%s.iso', RELEASE_DIR, image_version)
+    logger.info('Success! CD/USB: %s', os.path.relpath(iso_file_path(image_version)))
