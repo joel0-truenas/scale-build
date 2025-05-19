@@ -78,4 +78,4 @@ def build_update_image_impl():
     finally:
         clean_mounts()
 
-    logger.info('Success! Update image created at: %s', update_file_path())
+    logger.info('Success! Update image created at: %s', os.path.relpath(update_file_path()))

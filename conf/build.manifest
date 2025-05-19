@@ -47,13 +47,13 @@ base-packages:
   install_recommends: true
 - name: linux-truenas-production-libc-dev
   install_recommends: true
-- name: linux-headers-truenas-production-amd64
+- name: linux-headers-truenas-production-{{ ARCH }}
   install_recommends: true
-- name: linux-headers-truenas-debug-amd64
+- name: linux-headers-truenas-debug-{{ ARCH }}
   install_recommends: true
-- name: linux-image-truenas-production-amd64
+- name: linux-image-truenas-production-{{ ARCH }}
   install_recommends: true
-- name: linux-image-truenas-debug-amd64
+- name: linux-image-truenas-debug-{{ ARCH }}
   install_recommends: true
 - name: linux-perf-truenas
   install_recommends: true
@@ -86,13 +86,23 @@ base-packages:
 - name: firmware-realtek
   install_recommends: true
 - name: grub-pc-bin
+  arch: amd64
   install_recommends: true
-- name: grub-efi-amd64-bin
+- name: grub-efi-{{ ARCH }}-bin
   install_recommends: true
 - name: grub2-common
   install_recommends: true
 - name: htop
   install_recommends: true
+- name: qemu-system-arm
+  arch: arm64
+  install_recommends: false
+- name: qemu-system-common
+  arch: arm64
+  install_recommends: false
+- name: qemu-system-data
+  arch: arm64
+  install_recommends: false
 - name: ifstat
   install_recommends: true
 - name: openzfs
@@ -333,6 +343,8 @@ additional-packages:
   install_recommends: false
 - name: intel-gpu-tools
   comment: requested by community (NAS-130356)
+# Not packaged for aarch64, but upstream might have support. https://packages.debian.org/bookworm/intel-gpu-tools
+  arch: amd64
   install_recommends: false
 - name: p7zip-rar
   comment: requested by community (NAS-131306) https://forums.truenas.com/t/accepted-add-unrar-7zip-to-truenas-scale/10075
@@ -345,7 +357,7 @@ additional-packages:
 iso-packages:
 - curl
 - bzip2
-- linux-image-truenas-production-amd64
+- linux-image-truenas-production-{{ ARCH }}
 - iproute2
 - live-boot
 - pciutils
@@ -366,17 +378,19 @@ iso-packages:
 sources:
 - name: truenas-openssl-provider-fips
   repo: https://github.com/truenas/openssl-fips
-  branch: master
+  branch: release/26.0.0-BETA.1
   predepscmd:
     - "apt install -y wget xz-utils"
 - name: kernel
-  repo: https://github.com/truenas/linux
-  branch: truenas/linux-6.18
+  repo: https://git.jmay.us/truenas/linux
+  branch: release/26.0.0-BETA.1-aarch64
   batch_priority: 0
   supports_ccache: true
   env:
     EXTRAVERSION: "-production"
     PYTHON: "python3"
+    ARCH: {{ "arm64" if ARCH == "arm64" else "x86" }}
+    UTS_MACHINE: {{ "aarch64" if ARCH == "arm64" else "x86_64" }}
   predepscmd:
     - "apt install -y flex bison dwarves libssl-dev devscripts zstd"
     # Install dependencies to build perf
@@ -385,7 +399,7 @@ sources:
     # which results in misconfigured version due to our debian based changes
     - "rm -rf .git .gitattributes .gitignore"
     - "make defconfig"
-    - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_amd64.config"
+    - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_{{ ARCH }}.config"
     - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/truenas.config"
     - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/tn-production.config"
     - "make syncconfig"
@@ -400,13 +414,15 @@ sources:
       supports_ccache: true
       env:
         EXTRAVERSION: "-debug"
+        ARCH: {{ "arm64" if ARCH == "arm64" else "x86" }}
+        UTS_MACHINE: {{ "aarch64" if ARCH == "arm64" else "x86_64" }}
       predepscmd:
         - "apt install -y flex bison dwarves libssl-dev devscripts zstd"
         # We remove git files because kernel makefile tries to interact with git for determining version
         # which results in misconfigured version due to our debian based changes
         - "rm -rf .git .gitattributes .gitignore"
         - "make defconfig"
-        - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_amd64.config"
+        - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_{{ ARCH }}.config"
         - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/truenas.config"
         - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/tn-debug.config"
         - "make syncconfig"
@@ -417,18 +433,18 @@ sources:
         - "make -j$(nproc) bindeb-pkg"
 - name: nfs4xdr_acl_tools
   repo: https://github.com/truenas/nfs4xdr-acl-tools
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: openzfs
   repo: https://github.com/truenas/zfs
   batch_priority: 0
-  branch: truenas/zfs-2.4-release
+  branch: release/26.0.0-BETA.1
   env:
-    KVERS: "$(shell apt info linux-headers-truenas-production-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
-    KSRC: "/usr/src/linux-headers-truenas-production-amd64"
+    KVERS: "$(shell apt info linux-headers-truenas-production-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+    KSRC: "/usr/src/linux-headers-truenas-production-{{ ARCH }}"
     KOBJ: "$(KSRC)"
   predepscmd:
     - "cp -r contrib/debian debian"
-    - "sed -i 's/libtool,/libtool, linux-image-truenas-production-amd64, linux-headers-truenas-production-amd64,/' debian/control"
+    - "sed -i 's/libtool,/libtool, linux-image-truenas-production-{{ ARCH }}, linux-headers-truenas-production-{{ ARCH }},/' debian/control"
   deps_path: contrib/debian
   prebuildcmd:
     - "sh autogen.sh"
@@ -448,12 +464,12 @@ sources:
     - name: openzfs-dbg
       batch_priority: 0
       env:
-        KVERS: "$(shell apt info linux-headers-truenas-debug-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
-        KSRC: "/usr/src/linux-headers-truenas-debug-amd64"
+        KVERS: "$(shell apt info linux-headers-truenas-debug-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+        KSRC: "/usr/src/linux-headers-truenas-debug-{{ ARCH }}"
         KOBJ: "$(KSRC)"
       predepscmd:
         - "cp -r contrib/debian debian"
-        - "sed -i 's/libtool,/libtool, linux-image-truenas-debug-amd64, linux-headers-truenas-debug-amd64,/' debian/control"
+        - "sed -i 's/libtool,/libtool, linux-image-truenas-debug-{{ ARCH }}, linux-headers-truenas-debug-{{ ARCH }},/' debian/control"
       deps_path: contrib/debian
       prebuildcmd:
         - "sh autogen.sh"
@@ -472,55 +488,55 @@ sources:
       generate_version: false
 - name: truenas_pylibvirt
   repo: https://github.com/truenas/truenas_pylibvirt
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_pynetif
   repo: https://github.com/truenas/truenas_pynetif
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_pylibzfs
   repo: https://github.com/truenas/truenas_pylibzfs
-  branch: master
+  branch: release/26.0.0-BETA.1
   explicit_deps:
     - openzfs
 - name: truenas_pykeyring
   repo: https://github.com/truenas/truenas_pykeyring
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_pyos
   repo: https://github.com/truenas/truenas_pyos
-  branch: master
+  branch: release/26.0.0-BETA.1
   predepscmd:
     - "apt install -y linux-truenas-production-libc-dev"
   explicit_deps:
     - kernel
 - name: truenas_pwenc
   repo: https://github.com/truenas/truenas_pwenc
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_scram
   repo: https://github.com/truenas/truenas_scram
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_pypam
   repo: https://github.com/truenas/truenas_pypam
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: pam_truenas
   repo: https://github.com/truenas/pam_truenas
   explicit_deps:
     - truenas_pwenc
     - truenas_scram
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_samba
   repo: https://github.com/truenas/samba
-  branch: SCALE-v4-23-stable
+  branch: release/26.0.0-BETA.1
   generate_version: false
   batch_priority: 0
   explicit_deps:
     - openzfs
 - name: truenas_pyscstadmin
   repo: https://github.com/truenas/truenas_pyscstadmin
-  branch: master
+  branch: release/26.0.0-BETA.1
   buildcmd:
     - "dpkg-buildpackage -us -uc -b"
 - name: truenas_sssd
   repo: https://github.com/truenas/sssd
-  branch: truenas/2.9
+  branch: release/26.0.0-BETA.1
   generate_version: false
   predepscmd:
     - "apt install -y wget xz-utils systemd-dev truenas-samba"
@@ -529,7 +545,7 @@ sources:
     - truenas_samba
 - name: truenas_ipaclient
   repo: https://github.com/truenas/freeipa
-  branch: main
+  branch: release/26.0.0-BETA.1
   generate_version: false
   predepscmd:
     - "apt install -y pkg-config truenas-samba truenas-sssd"
@@ -539,8 +555,8 @@ sources:
     - truenas_samba
     - truenas_sssd
 - name: truenas_spdk
-  repo: https://github.com/truenas/truenas_spdk
-  branch: master
+  repo: https://git.jmay.us/truenas/truenas_spdk
+  branch: release/26.0.0-BETA.1-aarch64
   generate_version: false
   env:
     PIP_BREAK_SYSTEM_PACKAGES: "1"
@@ -554,30 +570,30 @@ sources:
     - kernel-dbg
 - name: avahi
   repo: https://github.com/truenas/avahi
-  branch: SCALE-v0.8
+  branch: release/26.0.0-BETA.1
   generate_version: false
 - name: py_libzfs
   repo: https://github.com/truenas/py-libzfs
-  branch: master
+  branch: release/26.0.0-BETA.1
   explicit_deps:
     - openzfs
 - name: zettarepl
   repo: https://github.com/truenas/zettarepl
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_crypto_utils
   repo: https://github.com/truenas/truenas_crypto_utils
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_connect_utils
   repo: https://github.com/truenas/truenas_connect_utils
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_installer
-  repo: https://github.com/truenas/truenas-installer
-  branch: master
+  repo: https://git.jmay.us/truenas/truenas-installer
+  branch: release/26.0.0-BETA.1-aarch64
 - name: scst
-  repo: https://github.com/truenas/scst
+  repo: https://git.jmay.us/truenas/scst
   generate_version: false
   env:
-    KVER: "$(shell apt info linux-headers-truenas-production-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+    KVER: "$(shell apt info linux-headers-truenas-production-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
     KDIR: "/lib/modules/$(KVER)/build"
   prebuildcmd:
     - "sed -i s/^DEBIAN_REVISION=.*/DEBIAN_REVISION=~truenas+1/g Makefile"
@@ -589,12 +605,12 @@ sources:
   explicit_deps:
     - kernel
     - kernel-dbg
-  branch: truenas-3.11.0-pre
+  branch: release/26.0.0-BETA.1-aarch64
   subpackages:
     - name: scst-dbg
       generate_version: false
       env:
-        KVER: "$(shell apt info linux-headers-truenas-debug-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+        KVER: "$(shell apt info linux-headers-truenas-debug-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
         KDIR: "/lib/modules/$(KVER)/build"
         PKG_BUILD_MODE: 2debug
       depscmd:
@@ -611,10 +627,10 @@ sources:
         - kernel
         - kernel-dbg
 - name: truenas_binaries
-  repo: https://github.com/truenas/binaries
-  branch: master
+  repo: https://git.jmay.us/truenas/binaries
+  branch: release/26.0.0-BETA.1-aarch64
 - name: truenas_webui
-  repo: https://github.com/truenas/webui
+  repo: https://git.jmay.us/truenas/webui
   env:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   predepscmd:
@@ -625,23 +641,23 @@ sources:
     - "yarn install --immutable --network-timeout 100000"
     - "tar cvzf node_files.tgz node_modules/"
     - "rm -rf node_modules"
-  branch: master
+  branch: release/26.0.0-BETA.1-aarch64
   secret_env: ["SENTRY_AUTH_TOKEN"]
 - name: sedutil
-  repo: https://github.com/truenas/sedutil
-  branch: master
+  repo: https://git.jmay.us/truenas/sedutil
+  branch: release/26.0.0-BETA.1-aarch64
 - name: python_netsnmpagent
   repo: https://github.com/truenas/python-netsnmpagent
-  branch: truenas/0.6.1
+  branch: release/26.0.0-BETA.1
 - name: python_truenas_requirements
-  repo: https://github.com/truenas/python-truenas-requirements
-  branch: master
+  repo: https://git.jmay.us/truenas/python-truenas-requirements
+  branch: release/26.0.0-BETA.1-aarch64
 - name: licenselib
   repo: https://github.com/truenas/licenselib
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: zectl
   repo: https://github.com/truenas/zectl
-  branch: master
+  branch: release/26.0.0-BETA.1
   predepscmd:
     - "cp -a packaging/debian ."
   deps_path: packaging/debian
@@ -649,28 +665,28 @@ sources:
     - openzfs
 - name: ixdiagnose
   repo: https://github.com/truenas/ixdiagnose
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: ixhardware
   repo: https://github.com/truenas/ixhardware
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: apps_validation
   repo: https://github.com/truenas/apps_validation
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: py_cryptit
   repo: https://github.com/truenas/py-cryptit
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: py_sgio
   repo: https://github.com/truenas/py-sgio
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: py_fenced
   repo: https://github.com/truenas/py-fenced
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: py_nvme
   repo: https://github.com/truenas/py-nvme
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas
-  repo: https://github.com/truenas/middleware
-  branch: master
+  repo: https://git.jmay.us/truenas/middleware
+  branch: release/26.0.0-BETA.1-aarch64
   subdir: debian
   subpackages:
     - name: middlewared
@@ -688,16 +704,16 @@ sources:
       subdir: src/freenas
 - name: truenas_api_client
   repo: https://github.com/truenas/api_client
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: truenas_verify
   repo: https://github.com/truenas/truenas_verify
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: midcli
   repo: https://github.com/truenas/midcli
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: grub2
   repo: https://github.com/truenas/grub2
-  branch: master
+  branch: release/26.0.0-BETA.1
   debian_fork: true
   predepscmd:
     - "apt install -y wget xz-utils"
@@ -708,7 +724,7 @@ sources:
   batch_priority: 150
 - name: parted
   repo: https://github.com/truenas/parted
-  branch: master
+  branch: release/26.0.0-BETA.1
   debian_fork: true
   predepscmd:
     - "apt install -y wget xz-utils"
@@ -717,15 +733,15 @@ sources:
   generate_version: false
 - name: rclone
   repo: https://github.com/truenas/rclone
-  branch: master
+  branch: release/26.0.0-BETA.1
   deoptions: nocheck
   generate_version: false
 - name: py_sg3
   repo: https://github.com/truenas/py-sg3
-  branch: master
+  branch: release/26.0.0-BETA.1
 - name: smartmontools
   repo: https://github.com/truenas/smartmontools
-  branch: master
+  branch: release/26.0.0-BETA.1
   debian_fork: true
   predepscmd:
     - "apt install -y wget xz-utils"
@@ -734,11 +750,11 @@ sources:
   generate_version: false
 - name: truenas_audit_rules
   repo: https://github.com/truenas/audit_rules.git
-  branch: master
+  branch: release/26.0.0-BETA.1
   generate_version: false
 - name: nfs_utils
   repo: https://github.com/truenas/nfs-utils.git
-  branch: trixie
+  branch: release/26.0.0-BETA.1
   generate_version: false
 
 # Nvidia extensions versions

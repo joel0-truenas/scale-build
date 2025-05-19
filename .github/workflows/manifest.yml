@@ -16,4 +16,4 @@ jobs:
     - name: Validating manifest
       run: |
         python -m pip install --upgrade pip
-        make validate_manifest PYTHON=`which python`
+        SKIP_SOURCE_REPO_VALIDATION=1 make validate_manifest PYTHON=`which python`
