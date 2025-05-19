@@ -2,6 +2,7 @@ import glob
 import hashlib
 import itertools
 import os
+import platform
 import shutil
 import tarfile
 import tempfile
@@ -18,7 +19,7 @@ from scale_build.config import TRUENAS_VENDOR
 from scale_build.config import PRESERVE_ISO
 
 from .bootstrap import umount_chroot_basedir
-from .manifest import get_image_version, update_file_path
+from .manifest import get_image_version, iso_file_path, iso_file_checksum_path, update_file_path
 from .utils import run_in_chroot
 
 
@@ -104,6 +105,15 @@ def make_iso_file():
     os.makedirs(os.path.join(CHROOT_BASEDIR, RELEASE_DIR), exist_ok=True)
     os.makedirs(os.path.join(CHROOT_BASEDIR, CD_DIR), exist_ok=True)
 
+    if platform.machine() == 'aarch64':
+        arch = 'arm64'
+        arch_platform = 'aarch64'
+        arch_grub = 'arm64'
+    else:
+        arch = 'amd64'
+        arch_platform = 'x86_64'
+        arch_grub = 'x86_64'
+
     # Debian GRUB EFI image probes for `.disk/info` file to identify a device/partition
     # to load config file from.
     os.makedirs(os.path.join(CD_DIR, '.disk'), exist_ok=True)
@@ -115,10 +125,13 @@ def make_iso_file():
         run(['mount', '--bind', CD_DIR, os.path.join(CHROOT_BASEDIR, CD_DIR)])
         run(['mount', '--bind', PKG_DIR, os.path.join(CHROOT_BASEDIR, 'packages')])
         run_in_chroot(['apt-get', 'update'], check=False)
-        run_in_chroot([
-            'apt-get', 'install', '-y', 'grub-common', 'grub2-common', 'grub-efi-amd64-bin',
-            'grub-efi-amd64-signed', 'grub-pc-bin', 'mtools', 'xorriso'
-        ])
+        install_packages = [
+            'apt-get', 'install', '-y', 'grub-common', 'grub2-common', f'grub-efi-{arch}-bin',
+            f'grub-efi-{arch}-signed', 'mtools', 'xorriso'
+        ]
+        if arch == 'amd64':
+            install_packages.append('grub-pc-bin')
+        run_in_chroot(install_packages)
 
         # Debian GRUB EFI searches for GRUB config in a different place
         os.makedirs(os.path.join(CD_DIR, 'EFI/debian'), exist_ok=True)
@@ -127,7 +140,7 @@ def make_iso_file():
         shutil.copy(os.path.join(CHROOT_BASEDIR, 'usr/share/grub/unicode.pf2'),
                     os.path.join(CD_DIR, 'EFI/debian/fonts/unicode.pf2'))
 
-        iso = os.path.join(RELEASE_DIR, f'TrueNAS-SCALE-{get_image_version(vendor=TRUENAS_VENDOR)}.iso')
+        iso = iso_file_path(get_image_version(vendor=TRUENAS_VENDOR))
 
         # Default grub EFI image does not support `search` command which we need to make TrueNAS ISO working in
         # Rufus "ISO Image mode".
@@ -136,7 +149,7 @@ def make_iso_file():
             with tempfile.NamedTemporaryFile(suffix='.tar.gz') as f:
                 apt_repos = get_apt_repos(check_custom=True)
                 r = requests.get(
-                    f'{apt_repos["url"]}dists/{apt_repos["distribution"]}/main/installer-amd64/current/images/cdrom/'
+                    f'{apt_repos["url"]}dists/{apt_repos["distribution"]}/main/installer-{arch}/current/images/cdrom/'
                     'debian-cd_info.tar.gz',
                     timeout=10,
                     stream=True,
@@ -183,7 +196,7 @@ def make_iso_file():
                     with open(grub_cfg_path) as f:
                         grub_cfg = f.read()
 
-                    substr = 'source $prefix/x86_64-efi/grub.cfg'
+                    substr = f'source $prefix/{arch_grub}-efi/grub.cfg'
                     if substr not in grub_cfg:
                         raise ValueError(f'Invalid grub.cfg:\n{grub_cfg}')
 
@@ -201,8 +214,8 @@ def make_iso_file():
         run(['umount', '-f', os.path.join(CHROOT_BASEDIR, 'packages')])
 
     image_version = get_image_version(vendor=TRUENAS_VENDOR)
-    with open(os.path.join(RELEASE_DIR, f'TrueNAS-SCALE-{image_version}.iso.sha256'), 'w') as f:
-        with open(os.path.join(RELEASE_DIR, f'TrueNAS-SCALE-{image_version}.iso'), 'rb') as sf:
+    with open(iso_file_checksum_path(image_version), 'w') as f:
+        with open(iso_file_path(image_version), 'rb') as sf:
             f.write(hashlib.file_digest(sf, 'sha256').hexdigest())
 
 
