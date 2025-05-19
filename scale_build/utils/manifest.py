@@ -4,6 +4,8 @@ import jsonschema
 import re
 import yaml
 
+from jinja2 import Environment
+from os import environ
 from urllib.parse import urlparse
 
 from scale_build.config import APT_BASE_CUSTOM, APT_INTERNAL_BUILD, SKIP_SOURCE_REPO_VALIDATION, TRAIN, SECRET_ENV_VARS
@@ -110,6 +112,7 @@ MANIFEST_SCHEMA = {
                 'properties': {
                     'install_recommends': {'type': 'boolean'},
                     'name': {'type': 'string'},
+                    'arch': {'type': 'string', 'pattern': '^(amd64|arm64)$'},
                 },
                 'required': ['install_recommends', 'name'],
                 'additionalProperties': False,
@@ -140,6 +143,7 @@ MANIFEST_SCHEMA = {
                     'name': {'type': 'string'},
                     'comment': {'type': 'string'},
                     'install_recommends': {'type': 'boolean'},
+                    'arch': {'type': 'string', 'pattern': '^(amd64|arm64)$'},
                 },
                 'required': ['name', 'comment', 'install_recommends'],
                 'additionalProperties': False,
@@ -231,7 +235,9 @@ def validate_apt_preferences_order(manifest):
 @functools.cache
 def get_manifest():
     try:
-        manifest = yaml.safe_load(get_manifest_str())
+        manifest_jinja = Environment().from_string(get_manifest_str())
+        manifest_str = manifest_jinja.render(environ)
+        manifest = yaml.safe_load(manifest_str)
         jsonschema.validate(manifest, MANIFEST_SCHEMA)
         validate_apt_preferences_order(manifest)
         return manifest
