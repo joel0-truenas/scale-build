@@ -629,7 +629,7 @@ def main():
                             except Exception:
                                 pass
 
-                            if partition_1_guid == BIOS_BOOT_PARTITION_GUID:
+                            if partition_1_guid == BIOS_BOOT_PARTITION_GUID and platform.machine() == 'x86_64':
                                 run_command([
                                     "chroot", root, "grub-install", "--target=i386-pc", f"/dev/{disk}"
                                 ])
@@ -656,7 +656,13 @@ def main():
 
                         run_command(["chroot", root, "mount", "-t", "vfat", partition, "/boot/efi"])
                         try:
-                            grub_cmd = ["chroot", root, "grub-install", "--target=x86_64-efi",
+                            if platform.machine() == "aarch64":
+                                arch = "arm64"
+                                arch_short = "aa64"
+                            else:
+                                arch = "x86_64"
+                                arch_short = "x64"
+                            grub_cmd = ["chroot", root, "grub-install", f"--target={arch}-efi",
                                         "--efi-directory=/boot/efi",
                                         "--bootloader-id=debian",
                                         "--recheck",
@@ -665,15 +671,16 @@ def main():
                             run_command(grub_cmd)
 
                             run_command(["chroot", root, "mkdir", "-p", "/boot/efi/EFI/boot"])
-                            run_command(["chroot", root, "cp", "/boot/efi/EFI/debian/grubx64.efi",
-                                         "/boot/efi/EFI/boot/bootx64.efi"])
+                            run_command(["chroot", root, "cp",
+                                         f"/boot/efi/EFI/debian/grub{arch_short}.efi",
+                                         f"/boot/efi/EFI/boot/boot{arch_short}.efi"])
 
                             if os.path.exists("/sys/firmware/efi"):
                                 run_command(["chroot", root, "efibootmgr", "-c",
                                              "-d", f"/dev/{disk}",
                                              "-p", f"{efi_partition_number}",
                                              "-L", f"TrueNAS-{i}",
-                                             "-l", "/EFI/debian/grubx64.efi"])
+                                             "-l", "/EFI/debian/grub{arch-short}.efi"])
                         finally:
                             run_command(["chroot", root, "umount", "/boot/efi"])
                 else:

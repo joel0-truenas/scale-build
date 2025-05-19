@@ -1,8 +1,14 @@
 #############################################################################
 # Makefile for building: TrueNAS SCALE
 #############################################################################
+ifeq ($(shell uname -m),aarch64)
+	ARCH?=arm64
+else
+	ARCH?=amd64
+endif
 PYTHON?=/usr/bin/python3
 COMMIT_HASH=$(shell git rev-parse --short HEAD)
+PYTHON_CMD:=. ./venv-${COMMIT_HASH}/bin/activate && ARCH=${ARCH}
 PACKAGES?=""
 REPO_CHANGED=$(shell if [ -d "./venv-$(COMMIT_HASH)" ]; then git status --porcelain | grep -c "scale_build/"; else echo "1"; fi)
 # Check if --break-system-packages flag is supported by pip
@@ -24,25 +30,25 @@ endif
 all: checkout packages update iso
 
 clean: check
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build clean
+	${PYTHON_CMD} scale_build clean
 checkout: check
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build checkout
+	${PYTHON_CMD} scale_build checkout
 check_upstream_package_updates: check
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build check_upstream_package_updates
+	${PYTHON_CMD} scale_build check_upstream_package_updates
 iso: check
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build iso
+	${PYTHON_CMD} scale_build iso
 packages: check
 ifeq ($(PACKAGES),"")
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build packages
+	${PYTHON_CMD} scale_build packages
 else
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build packages --packages ${PACKAGES}
+	${PYTHON_CMD} scale_build packages --packages ${PACKAGES}
 endif
 update: check
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build update
+	${PYTHON_CMD} scale_build update
 validate_manifest: check
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build validate --no-validate-system_state
+	${PYTHON_CMD} scale_build validate --no-validate-system_state
 validate: check
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build validate
+	${PYTHON_CMD} scale_build validate
 
 branchout: checkout
-	. ./venv-${COMMIT_HASH}/bin/activate && scale_build branchout $(args)
+	${PYTHON_CMD} scale_build branchout $(args)

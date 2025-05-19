@@ -47,13 +47,13 @@ base-packages:
   install_recommends: true
 - name: linux-truenas-production-libc-dev
   install_recommends: true
-- name: linux-headers-truenas-production-amd64
+- name: linux-headers-truenas-production-{{ ARCH }}
   install_recommends: true
-- name: linux-headers-truenas-debug-amd64
+- name: linux-headers-truenas-debug-{{ ARCH }}
   install_recommends: true
-- name: linux-image-truenas-production-amd64
+- name: linux-image-truenas-production-{{ ARCH }}
   install_recommends: true
-- name: linux-image-truenas-debug-amd64
+- name: linux-image-truenas-debug-{{ ARCH }}
   install_recommends: true
 - name: linux-perf-truenas
   install_recommends: true
@@ -86,8 +86,9 @@ base-packages:
 - name: firmware-realtek
   install_recommends: true
 - name: grub-pc-bin
+  arch: amd64
   install_recommends: true
-- name: grub-efi-amd64-bin
+- name: grub-efi-{{ ARCH }}-bin
   install_recommends: true
 - name: grub2-common
   install_recommends: true
@@ -97,6 +98,15 @@ base-packages:
   install_recommends: false
 - name: incus-agent
   # agent is required to get proper events in websockets and run commands on VMs
+  install_recommends: false
+- name: qemu-system-arm
+  arch: arm64
+  install_recommends: false
+- name: qemu-system-common
+  arch: arm64
+  install_recommends: false
+- name: qemu-system-data
+  arch: arm64
   install_recommends: false
 - name: ifstat
   install_recommends: true
@@ -336,6 +346,8 @@ additional-packages:
   install_recommends: false
 - name: intel-gpu-tools
   comment: requested by community (NAS-130356)
+# Not packaged for aarch64, but upstream might have support. https://packages.debian.org/bookworm/intel-gpu-tools
+  arch: amd64
   install_recommends: false
 - name: p7zip-rar
   comment: requested by community (NAS-131306) https://forums.truenas.com/t/accepted-add-unrar-7zip-to-truenas-scale/10075
@@ -348,7 +360,7 @@ additional-packages:
 iso-packages:
 - curl
 - bzip2
-- linux-image-truenas-production-amd64
+- linux-image-truenas-production-{{ ARCH }}
 - iproute2
 - live-boot
 - pciutils
@@ -373,13 +385,15 @@ sources:
   predepscmd:
     - "apt install -y wget xz-utils"
 - name: kernel
-  repo: https://github.com/truenas/linux
+  repo: https://git.jmay.us/truenas/linux
   branch: truenas/linux-6.12
   batch_priority: 0
   supports_ccache: true
   env:
     EXTRAVERSION: "-production"
     PYTHON: "python3"
+    ARCH: {{ "arm64" if ARCH == "arm64" else "x86" }}
+    UTS_MACHINE: {{ "aarch64" if ARCH == "arm64" else "x86_64" }}
   predepscmd:
     - "apt install -y flex bison dwarves libssl-dev devscripts"
     # Install dependencies to build perf
@@ -388,7 +402,7 @@ sources:
     # which results in misconfigured version due to our debian based changes
     - "rm -rf .git .gitattributes .gitignore"
     - "make defconfig"
-    - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_amd64.config"
+    - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_{{ ARCH }}.config"
     - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/truenas.config"
     - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/tn-production.config"
     - "make syncconfig"
@@ -403,13 +417,15 @@ sources:
       supports_ccache: true
       env:
         EXTRAVERSION: "-debug"
+        ARCH: {{ "arm64" if ARCH == "arm64" else "x86" }}
+        UTS_MACHINE: {{ "aarch64" if ARCH == "arm64" else "x86_64" }}
       predepscmd:
         - "apt install -y flex bison dwarves libssl-dev devscripts"
         # We remove git files because kernel makefile tries to interact with git for determining version
         # which results in misconfigured version due to our debian based changes
         - "rm -rf .git .gitattributes .gitignore"
         - "make defconfig"
-        - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_amd64.config"
+        - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/debian_{{ ARCH }}.config"
         - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/truenas.config"
         - "./scripts/kconfig/merge_config.sh .config scripts/package/truenas/tn-debug.config"
         - "make syncconfig"
@@ -426,12 +442,12 @@ sources:
   batch_priority: 0
   branch: truenas/zfs-2.4-release
   env:
-    KVERS: "$(shell apt info linux-headers-truenas-production-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
-    KSRC: "/usr/src/linux-headers-truenas-production-amd64"
+    KVERS: "$(shell apt info linux-headers-truenas-production-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+    KSRC: "/usr/src/linux-headers-truenas-production-{{ ARCH }}"
     KOBJ: "$(KSRC)"
   predepscmd:
     - "cp -r contrib/debian debian"
-    - "sed -i 's/libtool,/libtool, linux-image-truenas-production-amd64, linux-headers-truenas-production-amd64,/' debian/control"
+    - "sed -i 's/libtool,/libtool, linux-image-truenas-production-{{ ARCH }}, linux-headers-truenas-production-{{ ARCH }},/' debian/control"
   deps_path: contrib/debian
   prebuildcmd:
     - "sh autogen.sh"
@@ -451,12 +467,12 @@ sources:
     - name: openzfs-dbg
       batch_priority: 0
       env:
-        KVERS: "$(shell apt info linux-headers-truenas-debug-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
-        KSRC: "/usr/src/linux-headers-truenas-debug-amd64"
+        KVERS: "$(shell apt info linux-headers-truenas-debug-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+        KSRC: "/usr/src/linux-headers-truenas-debug-{{ ARCH }}"
         KOBJ: "$(KSRC)"
       predepscmd:
         - "cp -r contrib/debian debian"
-        - "sed -i 's/libtool,/libtool, linux-image-truenas-debug-amd64, linux-headers-truenas-debug-amd64,/' debian/control"
+        - "sed -i 's/libtool,/libtool, linux-image-truenas-debug-{{ ARCH }}, linux-headers-truenas-debug-{{ ARCH }},/' debian/control"
       deps_path: contrib/debian
       prebuildcmd:
         - "sh autogen.sh"
@@ -535,7 +551,7 @@ sources:
     - truenas_samba
     - truenas_sssd
 - name: truenas_spdk
-  repo: https://github.com/truenas/truenas_spdk
+  repo: https://git.jmay.us/truenas/truenas_spdk
   branch: master
   generate_version: false
   env:
@@ -566,13 +582,13 @@ sources:
   repo: https://github.com/truenas/truenas_connect_utils
   branch: master
 - name: truenas_installer
-  repo: https://github.com/truenas/truenas-installer
+  repo: https://git.jmay.us/truenas/truenas-installer
   branch: master
 - name: scst
-  repo: https://github.com/truenas/scst
+  repo: https://git.jmay.us/truenas/scst
   generate_version: false
   env:
-    KVER: "$(shell apt info linux-headers-truenas-production-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+    KVER: "$(shell apt info linux-headers-truenas-production-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
     KDIR: "/lib/modules/$(KVER)/build"
   prebuildcmd:
     - "sed -i s/^DEBIAN_REVISION=.*/DEBIAN_REVISION=~truenas+1/g Makefile"
@@ -589,7 +605,7 @@ sources:
     - name: scst-dbg
       generate_version: false
       env:
-        KVER: "$(shell apt info linux-headers-truenas-debug-amd64 | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
+        KVER: "$(shell apt info linux-headers-truenas-debug-{{ ARCH }} | awk '/Source:/ { print $$2}' | sed 's/linux-//')"
         KDIR: "/lib/modules/$(KVER)/build"
         PKG_BUILD_MODE: 2debug
       depscmd:
@@ -606,10 +622,10 @@ sources:
         - kernel
         - kernel-dbg
 - name: truenas_binaries
-  repo: https://github.com/truenas/binaries
+  repo: https://git.jmay.us/truenas/binaries
   branch: master
 - name: truenas_webui
-  repo: https://github.com/truenas/webui
+  repo: https://git.jmay.us/truenas/webui
   env:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   predepscmd:
@@ -623,13 +639,13 @@ sources:
   branch: master
   secret_env: ["SENTRY_AUTH_TOKEN"]
 - name: sedutil
-  repo: https://github.com/truenas/sedutil
+  repo: https://git.jmay.us/truenas/sedutil
   branch: master
 - name: python_netsnmpagent
   repo: https://github.com/truenas/python-netsnmpagent
   branch: truenas/0.6.1
 - name: python_truenas_requirements
-  repo: https://github.com/truenas/python-truenas-requirements
+  repo: https://git.jmay.us/truenas/python-truenas-requirements
   branch: master
 - name: licenselib
   repo: https://github.com/truenas/licenselib
@@ -664,7 +680,7 @@ sources:
   repo: https://github.com/truenas/py-nvme
   branch: master
 - name: truenas
-  repo: https://github.com/truenas/middleware
+  repo: https://git.jmay.us/truenas/middleware
   branch: master
   subdir: debian
   subpackages:
@@ -709,7 +725,7 @@ sources:
   deoptions: nocheck
   generate_version: false
 - name: rclone
-  repo: https://github.com/truenas/rclone
+  repo: https://git.jmay.us/truenas/rclone
   branch: master
   deoptions: nocheck
   generate_version: false
