@@ -8,31 +8,31 @@ identity_file_path_default: "~/.ssh/id_rsa"
 # into the build chroots, or the final system images.
 ############################################################################
 apt-repos:
-  base-url: https://truenas-apt.jmay.xyz/
-  url: ""
+  base-url: http://truenas-apt.jmay.xyz/
+  url: goldeye/nightlies/debian/
   distribution: bookworm
   components: main non-free
   additional:
-  - url: ""
-    distribution: bookworm-security/updates
+  - url: goldeye/nightlies/debian-security/
+    distribution: bookworm-security
     component: main
-    key: keys/apt-jmay.gpg
-  - url: ""
+    key: keys/debian.gpg
+  - url: goldeye/nightlies/debian-backports/
     distribution: bookworm-backports
     component: "main contrib non-free non-free-firmware"
-    key: keys/apt-jmay.gpg
-#  - url: debian-debug/
-#    distribution: bookworm-debug
-#    component: main
-#    key: keys/debian.gpg
-  - url: ""
-    distribution: yarn-stable
+    key: keys/debian.gpg
+  - url: goldeye/nightlies/debian-debug/
+    distribution: bookworm-debug
     component: main
-    key: keys/apt-jmay.gpg
-  - url: ""
-    distribution: docker
+    key: keys/debian.gpg
+  - url: goldeye/nightlies/yarn/
+    distribution: stable
+    component: main
+    key: keys/yarn.gpg
+  - url: goldeye/nightlies/docker/
+    distribution: bookworm
     component: stable
-    key: keys/apt-jmay.gpg
+    key: keys/docker.gpg
 
 #
 # Packages which are installed into the base TrueNAS SCALE System by default
