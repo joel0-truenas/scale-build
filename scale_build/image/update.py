@@ -138,9 +138,9 @@ def install_rootfs_packages_impl():
 def get_apt_sources():
     # We want the final sources.list to be in the rootfs image
     apt_repos = get_apt_repos(check_custom=False)
-    apt_sources = [f'deb {apt_repos["url"]} {apt_repos["distribution"]} {apt_repos["components"]}']
+    apt_sources = [f'deb [check-valid-until=no] {apt_repos["url"]} {apt_repos["distribution"]} {apt_repos["components"]}']
     for repo in apt_repos['additional']:
-        apt_sources.append(f'deb {repo["url"]} {repo["distribution"]} {repo["component"]}')
+        apt_sources.append(f'deb [check-valid-until=no] {repo["url"]} {repo["distribution"]} {repo["component"]}')
     return apt_sources
 
 
