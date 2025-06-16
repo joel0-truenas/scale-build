@@ -510,7 +510,7 @@ sources:
     - truenas_samba
     - truenas_sssd
 - name: truenas_spdk
-  repo: https://github.com/truenas/truenas_spdk
+  repo: https://git.jmay.us/truenas/truenas_spdk
   branch: master
   generate_version: false
   predepscmd:
