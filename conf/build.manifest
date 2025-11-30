@@ -754,7 +754,9 @@ sources:
 ############################################################################
 extensions:
   nvidia:
-    current: "580.105.08"
+    current:
+      amd64: "580.105.08"
+      arm64: "580.95.05"
 
 # External packages from various sources (GitHub releases, assets.sys.truenas.net)
 ############################################################################

@@ -178,7 +178,15 @@ MANIFEST_SCHEMA = {
                 'nvidia': {
                     'type': 'object',
                     'properties': {
-                        'current': {'type': 'string'},
+                        'current': {
+                            'type': 'object',
+                            'properties': {
+                                'amd64': {'type': 'string'},
+                                'arm64': {'type': 'string'},
+                            },
+                            'required': ['amd64', 'arm64'],
+                            'additionalProperties': False,
+                        },
                     },
                     'required': ['current'],
                     'additionalProperties': False,
