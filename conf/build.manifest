@@ -759,12 +759,14 @@ extensions:
 # External packages from various sources (GitHub releases, assets.sys.truenas.net)
 ############################################################################
 external-packages:
-  truenas-file-manager:
-    deb_version: "0.3.0"
-    url_template: "https://assets.sys.truenas.net/debian-packages/{package}_{version}_{arch}.deb"
-  truesearch:
-    deb_version: "0.0.5"
-    url_template: "https://assets.sys.truenas.net/debian-packages/{package}_{version}_{arch}.deb"
+# Not packaged for arm. https://github.com/truenas/truenas-file-manager
+#  truenas-file-manager:
+#    deb_version: "0.3.0"
+#    url_template: "https://assets.sys.truenas.net/debian-packages/{package}_{version}_{arch}.deb"
+# Not packaged for arm. https://github.com/truenas/truesearch
+#  truesearch:
+#    deb_version: "0.0.5"
+#    url_template: "https://assets.sys.truenas.net/debian-packages/{package}_{version}_{arch}.deb"
   caddy:
     deb_version: "2.10.0"
     url_template: "https://github.com/caddyserver/caddy/releases/download/v{version}/caddy_{version}_linux_{arch}.deb"
