@@ -1,7 +1,6 @@
 import glob
 import logging
 import os
-import platform
 
 from .bootstrap.bootstrapdir import CdromBootstrapDirectory
 from .exceptions import CallError
@@ -9,7 +8,7 @@ from .image.bootstrap import clean_mounts, setup_chroot_basedir
 from .image.iso import install_iso_packages, make_iso_file
 from .image.manifest import get_image_version, iso_file_path, update_file_path
 from .utils.logger import LoggingContext
-from .utils.paths import LOG_DIR, RELEASE_DIR
+from .utils.paths import LOG_DIR
 from .config import TRUENAS_VENDOR
 
 

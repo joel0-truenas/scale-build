@@ -89,5 +89,6 @@ def iso_file_path(version=None):
     arch = '-aarch64' if platform.machine() == 'aarch64' else ''
     return os.path.join(RELEASE_DIR, f'TrueNAS-SCALE-{version or get_image_version()}{arch}.iso')
 
+
 def iso_file_checksum_path(version=None):
     return f'{iso_file_path(version)}.sha256'

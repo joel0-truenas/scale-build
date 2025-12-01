@@ -118,11 +118,9 @@ def make_iso_file():
 
     if platform.machine() == 'aarch64':
         arch = 'arm64'
-        arch_platform = 'aarch64'
         arch_grub = 'arm64'
     else:
         arch = 'amd64'
-        arch_platform = 'x86_64'
         arch_grub = 'x86_64'
 
     # Debian GRUB EFI image probes for `.disk/info` file to identify a device/partition

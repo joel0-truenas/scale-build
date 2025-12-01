@@ -619,9 +619,10 @@ def main():
                         if old_root is None:
                             # Fresh installation - we know the layout
                             efi_partition_number = 2
-                            run_command([
-                                "chroot", root, "grub-install", "--target=i386-pc", f"/dev/{disk}"
-                            ])
+                            if platform.machine() == 'x86_64':
+                                run_command([
+                                    "chroot", root, "grub-install", "--target=i386-pc", f"/dev/{disk}"
+                                ])
                         else:
                             partition_1_guid = None
                             try:
