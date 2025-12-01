@@ -138,7 +138,7 @@ def make_iso_file():
         run_in_chroot(['apt-get', 'update'], check=False)
         install_packages = [
             'apt-get', 'install', '-y', 'grub-common', 'grub2-common', f'grub-efi-{arch}-bin',
-            f'grub-efi-{arch}-signed', 'mtools', 'xorriso'
+            'mtools', 'xorriso'
         ]
         if arch == 'amd64':
             install_packages.append('grub-pc-bin')
