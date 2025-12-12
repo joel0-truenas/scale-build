@@ -55,8 +55,9 @@ base-packages:
   install_recommends: true
 - name: linux-image-truenas-debug-{{ ARCH }}
   install_recommends: true
-- name: linux-perf-truenas
-  install_recommends: true
+# TEMP: this build is failing
+#- name: linux-perf-truenas
+#  install_recommends: true
 - name: avahi-daemon
   install_recommends: true
 - name: avahi-utils
