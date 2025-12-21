@@ -720,7 +720,7 @@ sources:
   deoptions: nocheck
   generate_version: false
 - name: rclone
-  repo: https://git.jmay.us/truenas/rclone
+  repo: https://github.com/truenas/rclone
   branch: master
   deoptions: nocheck
   generate_version: false
