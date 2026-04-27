@@ -121,6 +121,8 @@ base-packages:
   install_recommends: true
 - name: python3-truenas-pyos
   install_recommends: true
+- name: python3-truenas-pysnmp
+  install_recommends: true
 - name: python3-truenas-pwenc
   install_recommends: true
 - name: python3-truenas-pyscstadmin
@@ -507,6 +509,9 @@ sources:
     - "apt install -y linux-truenas-production-libc-dev"
   explicit_deps:
     - kernel
+- name: truenas_pysnmp
+  repo: https://github.com/truenas/truenas_pysnmp
+  branch: master
 - name: truenas_pwenc
   repo: https://github.com/truenas/truenas_pwenc
   branch: master
@@ -698,6 +703,7 @@ sources:
         - truenas_sssd
         - truenas_pwenc
         - truenas_pyos
+        - truenas_pysnmp
         - truenas_pyscstadmin
       subdir: src/middlewared
     - name: middlewared-docs
