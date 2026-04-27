@@ -672,6 +672,8 @@ sources:
 - name: apps_validation
   repo: https://github.com/truenas/apps_validation
   branch: master
+  explicit_deps:
+    - truenas_pyos
 - name: py_cryptit
   repo: https://github.com/truenas/py-cryptit
   branch: master
