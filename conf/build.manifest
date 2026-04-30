@@ -652,9 +652,9 @@ sources:
 - name: python_truenas_requirements
   repo: https://git.jmay.us/truenas/python-truenas-requirements
   branch: release/26.0.0-BETA.1-aarch64
-- name: licenselib
-  repo: https://github.com/truenas/licenselib
-  branch: release/26.0.0-BETA.1
+# - name: licenselib
+#   repo: https://github.com/truenas/licenselib
+#   branch: release/26.0.0-BETA.1
 - name: zectl
   repo: https://github.com/truenas/zectl
   branch: release/26.0.0-BETA.1
