@@ -145,8 +145,8 @@ base-packages:
   install_recommends: true
 - name: cifs-utils
   install_recommends: true
-- name: nfs4xdr-acl-tools
-  install_recommends: true
+# - name: nfs4xdr-acl-tools
+#   install_recommends: true
 - name: nfs4-acl-tools
   install_recommends: true
 - name: qemu-guest-agent
@@ -431,9 +431,9 @@ sources:
       buildcmd:
         - "rm -rf .config.old"
         - "make -j$(nproc) bindeb-pkg"
-- name: nfs4xdr_acl_tools
-  repo: https://github.com/truenas/nfs4xdr-acl-tools
-  branch: release/26.0.0-BETA.1
+# - name: nfs4xdr_acl_tools
+#   repo: https://github.com/truenas/nfs4xdr-acl-tools
+#   branch: release/26.0.0-BETA.1
 - name: openzfs
   repo: https://github.com/truenas/zfs
   batch_priority: 0
