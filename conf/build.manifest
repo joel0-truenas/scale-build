@@ -507,8 +507,8 @@ sources:
     - truenas_samba
     - truenas_sssd
 - name: truenas_spdk
-  repo: https://github.com/truenas/truenas_spdk
-  branch: release/25.10.3
+  repo: https://git.jmay.us/truenas/truenas_spdk
+  branch: release/25.10.3-aarch64
   generate_version: false
   predepscmd:
     - "apt install -y rsync"
