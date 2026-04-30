@@ -10,26 +10,26 @@ identity_file_path_default: "~/.ssh/id_rsa"
 apt-repos:
   base-url: https://apt.sys.truenas.net/
   base-url-internal: http://apt-mirror.tn.ixsystems.net/
-  url: halfmoon/nightlies/debian/
+  url: halfmoon/26.0.0-BETA.1/debian/
   distribution: trixie
   components: main
   additional:
-  - url: halfmoon/nightlies/debian-security/
+  - url: halfmoon/26.0.0-BETA.1/debian-security/
     distribution: trixie-security
     component: main
-  - url: halfmoon/nightlies/debian-backports/
+  - url: halfmoon/26.0.0-BETA.1/debian-backports/
     distribution: trixie-backports
     component: "main contrib non-free non-free-firmware"
-  - url: halfmoon/nightlies/debian-debug/
+  - url: halfmoon/26.0.0-BETA.1/debian-debug/
     distribution: trixie-debug
     component: main
-  - url: halfmoon/nightlies/yarn/
+  - url: halfmoon/26.0.0-BETA.1/yarn/
     distribution: stable
     component: main
-  - url: halfmoon/nightlies/netdata/
+  - url: halfmoon/26.0.0-BETA.1/netdata/
     distribution: trixie
     component: main
-  - url: halfmoon/nightlies/docker/
+  - url: halfmoon/26.0.0-BETA.1/docker/
     distribution: trixie
     component: stable
     key: keys/docker.gpg
