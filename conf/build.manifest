@@ -14,22 +14,22 @@ apt-repos:
   distribution: trixie
   components: main
   additional:
-  - url: halfmoon/26.0.0-BETA.1/debian-security/
+  - url: halfmoon/nightlies/debian-security/
     distribution: trixie-security
     component: main
-  - url: halfmoon/26.0.0-BETA.1/debian-backports/
+  - url: halfmoon/nightlies/debian-backports/
     distribution: trixie-backports
     component: "main contrib non-free non-free-firmware"
-  - url: halfmoon/26.0.0-BETA.1/debian-debug/
+  - url: halfmoon/nightlies/debian-debug/
     distribution: trixie-debug
     component: main
-  - url: halfmoon/26.0.0-BETA.1/yarn/
+  - url: halfmoon/nightlies/yarn/
     distribution: stable
     component: main
-  - url: halfmoon/26.0.0-BETA.1/netdata/
+  - url: halfmoon/nightlies/netdata/
     distribution: trixie
     component: main
-  - url: halfmoon/26.0.0-BETA.1/docker/
+  - url: halfmoon/nightlies/docker/
     distribution: trixie
     component: stable
     key: keys/docker.gpg
