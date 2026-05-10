@@ -10,7 +10,7 @@ identity_file_path_default: "~/.ssh/id_rsa"
 apt-repos:
   base-url: https://apt.sys.truenas.net/
   base-url-internal: http://apt-mirror.tn.ixsystems.net/
-  url: halfmoon/26.0.0-BETA.1/debian/
+  url: halfmoon/nightlies/debian/
   distribution: trixie
   components: main
   additional:
