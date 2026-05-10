@@ -197,6 +197,8 @@ base-packages:
   install_recommends: false
 - name: restic
   install_recommends: false
+- name: parted
+  install_recommends: true
 
 #
 # Packages which are removed from the base TrueNAS SCALE System by default
@@ -722,15 +724,15 @@ sources:
   generate_version: false
   jobs: 1
   batch_priority: 150
-- name: parted
-  repo: https://github.com/truenas/parted
-  branch: release/26.0.0-BETA.1
-  debian_fork: true
-  predepscmd:
-    - "apt install -y wget xz-utils"
-    - "./pull.sh"
-  deoptions: nocheck
-  generate_version: false
+# - name: parted
+#   repo: https://github.com/truenas/parted
+#   branch: release/26.0.0-BETA.1
+#   debian_fork: true
+#   predepscmd:
+#     - "apt install -y wget xz-utils"
+#     - "./pull.sh"
+#   deoptions: nocheck
+#   generate_version: false
 - name: rclone
   repo: https://github.com/truenas/rclone
   branch: release/26.0.0-BETA.1
